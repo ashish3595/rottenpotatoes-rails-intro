@@ -7,11 +7,19 @@ class MoviesController < ApplicationController
   end
 
   def index
+    redirect_page = false
+    @all_ratings = Movie.ratings
+    if params[:ratings].present?
+      @ratings_filter = params[:ratings].keys
+    else
+      @ratings_filter = @all_ratings
+    end
+    
     if params[:sort].present?
       @sort = params[:sort]
-      @movies = Movie.all.order(@sort)
+      @movies = Movie.where(rating: @ratings_filter).order(@sort)
     else
-      @movies = Movie.all
+      @movies = Movie.where(rating: @ratings_filter)
     end
   end
 
