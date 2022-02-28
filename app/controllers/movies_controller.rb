@@ -7,19 +7,24 @@ class MoviesController < ApplicationController
   end
 
   def index
-    redirect_page = false
-    @all_ratings = Movie.ratings
-    if params[:ratings].present?
-      @ratings_filter = params[:ratings].keys
-    else
-      @ratings_filter = @all_ratings
-    end
     
-    if params[:sort].present?
-      @sort = params[:sort]
-      @movies = Movie.where(rating: @ratings_filter).order(@sort)
-    else
-      @movies = Movie.where(rating: @ratings_filter)
+    @all_ratings = Movie.ratings
+    @sort =  params[:sort] || session[:sort]
+    
+    # assign all ratings to session ratings filter if it is empty
+    
+    session[:ratings] = session[:ratings] || {'G' => '', 'R'=> '', 'PG-13'=> '', 'PG'=> ''}
+    @ratings = params[:ratings] || session[:ratings]
+    
+    session[:sort] = @sort
+    session[:ratings] = @ratings
+    
+    @movies = Movie.where(rating: @ratings.keys).order(@sort)
+    
+    # if session parameter was used, use flash.keep before redirect
+    if (params[:sort].nil? and !(session[:sort].nil?)) or (params[:ratings].nil? and !(session[:ratings].nil?))
+      flash.keep
+      redirect_to movies_path(sort: session[:sort], ratings: session[:ratings])
     end
   end
 
